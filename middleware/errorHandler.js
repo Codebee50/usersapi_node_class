@@ -16,6 +16,13 @@ const errorHandler = (err, req, res, next) => {
         status: res.statusCode,
       });
       break;
+    case 401:
+      res.json({
+        title: "Unauthorized",
+        message: err.message,
+        status: res.statusCode,
+      });
+      break;
     default:
       res.json({
         message: err.message,
