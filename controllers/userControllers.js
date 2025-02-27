@@ -1,6 +1,8 @@
-const createUser = (req, res) => {
-  console.log(req.body);
+const asyncHandler = require("express-async-handler");
+const User = require("../models/userModel");
+const userModel = require("../models/userModel");
 
+const createUser = asyncHandler(async (req, res) => {
   const { email, phone, name } = req.body;
   console.log(email, phone, name);
 
@@ -9,22 +11,29 @@ const createUser = (req, res) => {
     throw new Error("All fields are required");
   }
 
-  res.json({
-    message: `Create a user account with email: ${req.body.email}`,
+  const user = await User.create({
+    email,
+    phone,
+    name,
   });
-};
 
-const getUsers = (req, res) => {
-  res.json({
-    message: "Get all users",
-  });
-};
+  res.status(201).json(user);
+});
 
-const getSingleUser = (req, res) => {
-  res.json({
-    message: `Getting a user whose id is ${req.params.id}`,
-  });
-};
+const getUsers = asyncHandler(async (req, res) => {
+  const users = await userModel.find().exec();
+  // const query = await userModel.find({name: "Kyrian"})
+  res.status(200).json(users);
+});
+
+const getSingleUser = asyncHandler(async (req, res) => {
+  const user = await userModel.findById(req.params.id);
+  if (!user){
+    res.status(404)
+    throw new Error('User not found')
+  }
+  res.json(user);
+});
 
 module.exports = {
   createUser,
