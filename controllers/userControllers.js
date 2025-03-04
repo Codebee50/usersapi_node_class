@@ -1,25 +1,72 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
 const userModel = require("../models/userModel");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-
-const createUser = asyncHandler(async (req, res) => {
-  const { email, phone, name } = req.body;
-  console.log(email, phone, name);
-
-  if (!email || !phone || !name) {
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
     res.status(400);
     throw new Error("All fields are required");
   }
 
+  const user = await userModel.findOne({ email });
+  if (user) {
+    const passwordMatch = bcrypt.compare(password, user.password);
+    if (passwordMatch) {
+      const accessToken = jwt.sign(
+        {
+          user: {
+            name: user.name,
+            email: user.email,
+            id: user._id,
+          },
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "10m" }
+      );
+
+      res.json({ accessToken });
+    } else {
+      res.status(401);
+      throw new Error("Invalid login credentials");
+    }
+  } else {
+    res.status(401);
+    throw new Error("Invalid login credentials");
+  }
+});
+
+const createUser = asyncHandler(async (req, res) => {
+  const { email, phone, name, password } = req.body;
+  console.log(email, phone, name);
+
+  if (!email || !phone || !name || !password) {
+    res.status(400);
+    throw new Error("All fields are required");
+  }
+
+  const existingUser = await userModel.findOne({ email });
+  if (existingUser) {
+    res.status(400);
+    throw new Error("User already exists");
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
   const user = await User.create({
     email,
     phone,
     name,
+    password: hashedPassword,
   });
 
-  res.status(201).json(user);
+  res.status(201).json({
+    _id: user._id,
+    email: user.email,
+    name: user.name,
+    phone: user.phone,
+  });
 });
 
 const searchUsers = asyncHandler(async (req, res) => {
@@ -91,4 +138,5 @@ module.exports = {
   searchUsers,
   updateUser,
   updateSingleUser,
+  loginUser,
 };
