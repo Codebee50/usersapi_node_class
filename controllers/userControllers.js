@@ -54,6 +54,7 @@ const createUser = asyncHandler(async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
+  console.log(hashedPassword)
   const user = await User.create({
     email,
     phone,
@@ -78,7 +79,6 @@ const searchUsers = asyncHandler(async (req, res) => {
 });
 
 const updateSingleUser = asyncHandler(async (req, res) => {
-  console.log(req.body);
   const response = await userModel.updateOne(
     { _id: req.params.id },
     { $set: req.body }
