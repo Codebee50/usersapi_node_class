@@ -13,6 +13,11 @@ const userSchema = mongoose.Schema(
         phone: {
             type: String,
             required: [true, "Please enter a phone number"]
+        },
+        password: {
+            type: String,
+            required: [true, "Please enter a password"],
+            default: "defpassword"
         }
     }
 )
