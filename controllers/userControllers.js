@@ -4,6 +4,13 @@ const userModel = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const getLoggedInUser = asyncHandler(async (req, res) => {
+  console.log("gaga")
+  res.json({
+    message: "Getting the currently logged in user",
+  });
+});
+
 const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -26,7 +33,6 @@ const loginUser = asyncHandler(async (req, res) => {
         process.env.ACCESS_TOKEN_SECRET,
         { expiresIn: "10m" }
       );
-
       res.json({ accessToken });
     } else {
       res.status(401);
@@ -54,7 +60,7 @@ const createUser = asyncHandler(async (req, res) => {
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
-  console.log(hashedPassword)
+  console.log(hashedPassword);
   const user = await User.create({
     email,
     phone,
@@ -139,4 +145,5 @@ module.exports = {
   updateUser,
   updateSingleUser,
   loginUser,
+  getLoggedInUser
 };
