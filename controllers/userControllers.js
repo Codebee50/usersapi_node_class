@@ -3,11 +3,43 @@ const User = require("../models/userModel");
 const userModel = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+
+const sendEmail = asyncHandler(async (req, res) => {
+  let config = {
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_HOST_USER,
+      pass: process.env.EMAIL_HOST_PASSWORD,
+    },
+  };
+
+  let transporter = nodemailer.createTransport(config);
+  let message = {
+    from: process.env.EMAIL_HOST_USER,
+    to: req.body.email,
+    subject: "This is my email",
+    html: "<p>Welcome to my website, this is my email</p>",
+  };
+
+  transporter
+    .sendMail(message)
+    .then((info) => {
+      res.status(200).json({
+        msg: "Email sent",
+        info: info.messageId,
+      });
+    })
+    .catch((err) => {
+      res.status(500);
+      throw new Error(`Failed to send email ${err}`);
+    });
+});
 
 const getLoggedInUser = asyncHandler(async (req, res) => {
-  console.log("gaga")
   res.json({
     message: "Getting the currently logged in user",
+    user: req.user,
   });
 });
 
@@ -107,6 +139,7 @@ const updateSingleUser = asyncHandler(async (req, res) => {
 });
 
 const updateUser = asyncHandler(async (req, res) => {
+  console.log(req.user);
   const { name } = req.body;
   const response = await userModel.updateOne(
     {
@@ -145,5 +178,6 @@ module.exports = {
   updateUser,
   updateSingleUser,
   loginUser,
-  getLoggedInUser
+  getLoggedInUser,
+  sendEmail,
 };
