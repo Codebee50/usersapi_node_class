@@ -4,6 +4,68 @@ const userModel = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
+const Mailgen = require("mailgen");
+
+const sendHtmlEmail = asyncHandler(async (req, res) => {
+  let config = {
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_HOST_USER,
+      pass: process.env.EMAIL_HOST_PASSWORD,
+    },
+  };
+
+  let transporter = nodemailer.createTransport(config);
+
+  let MailGenerator = new Mailgen({
+    theme: "default",
+    product: {
+      name: "Kyrians store",
+      link: "https://kyrian.pro",
+    },
+  });
+
+  let response = {
+    body: {
+      name: "Name",
+      intro: "Welcome to kyrians store",
+      action: [
+        {
+          instructions: "Click the button below to get started",
+          button: [
+            {
+              color: "#00ff00",
+              text: "Open website",
+              link: "https://kyrian.pro",
+              fallback: true,
+            },
+          ],
+        },
+      ],
+    },
+  };
+
+  let mail = MailGenerator.generate(response);
+  let message = {
+    from: process.env.EMAIL_HOST_USER,
+    to: req.body.email,
+    subject: "This is my email",
+    html: mail,
+  };
+
+  transporter
+    .sendMail(message)
+    .then((info) => {
+      res.status(200).json({
+        msg: "Email sent",
+        info: info.messageId,
+      });
+    })
+    .catch((err) => {
+      res.status(500);
+      throw new Error(`Failed to send email ${err}`);
+    });
+});
 
 const sendEmail = asyncHandler(async (req, res) => {
   let config = {
@@ -20,6 +82,18 @@ const sendEmail = asyncHandler(async (req, res) => {
     to: req.body.email,
     subject: "This is my email",
     html: "<p>Welcome to my website, this is my email</p>",
+    attachments: [
+      {
+        filename: "resume.pdf",
+        path: "attachments/resume.pdf",
+        cid: "myresume123.pdf",
+      },
+      {
+        filename: "dummyqr.png",
+        path: "attachments/dummyqr.png",
+        cid: "mydummy123.png",
+      },
+    ],
   };
 
   transporter
@@ -180,4 +254,5 @@ module.exports = {
   loginUser,
   getLoggedInUser,
   sendEmail,
+  sendHtmlEmail,
 };

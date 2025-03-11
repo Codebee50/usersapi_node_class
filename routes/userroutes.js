@@ -10,6 +10,7 @@ const {
   loginUser,
   getLoggedInUser,
   sendEmail,
+  sendHtmlEmail,
 } = require("../controllers/userControllers");
 const validateSession = require("../middleware/sessionMiddleware");
 
@@ -22,6 +23,7 @@ router.route("/update/:id").patch(validateSession, updateUser);
 router.route("/v2/update/:id").patch(updateSingleUser);
 router.route("/login").post(loginUser);
 router.route("/email").post(sendEmail)
+router.route("/email/html").post(sendHtmlEmail)
 
 // router.route('/user/:id/:name').get((req, res)=>{
 //     res.send(`getting a particular user with id of ${req.params.id} the name is ${req.params.name}`)
